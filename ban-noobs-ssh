@@ -1,0 +1,15 @@
+#!/bin/bash
+LOG=/root/ban-noob.log
+IPS=`cat /var/log/auth.log | grep -Eo 'sshd\[[0-9]{1,}\]:.refused connect from ([0-9]{,3}\.?)*' | sed "s/^.*refused connect from //g" | sort | uniq -u`
+IPTABLES=`iptables-save`
+for i in $IPS; do
+ RESPONSE=$(echo $IPTABLES | grep $i)
+  if [ $? -eq 1 ]
+  then
+    echo "Banning $i" >> $LOG
+    iptables -I INPUT -s $i -j DROP
+  else
+    echo "$i is banned already"
+  fi
+done
+
